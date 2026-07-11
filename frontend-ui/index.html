@@ -349,7 +349,7 @@
         <a href="#" class="active" onclick="navigateTo('home')" data-page="home">الرئيسية</a>
         <a href="#" onclick="navigateTo('events')" data-page="events">الفعاليات</a>
         <a href="#" onclick="navigateTo('dashboard')" data-page="dashboard" id="dashNavLink" style="display:none;">لوحة التحكم</a>
-        <a href="#" onclick="navigateTo('admin')" data-page="admin" id="adminNavLink" style="display:none;">لوحة المدير</a>
+        <a href="#" onclick="navigateTo('admin')" data-page="admin" id="adminNavLink" style="display:none;"> لوحة الأدمين</a>
         <a href="#" onclick="navigateTo('customer-dashboard')" data-page="customer-dashboard" id="customerDashLink" style="display:none;">حسابي</a>
     </nav>
     <div class="header-actions">
@@ -694,9 +694,9 @@
     </div>
 </section>
 
-<!-- لوحة المدير -->
+<!-- لوحة الأدمين -->
 <section class="section hidden" id="page-admin">
-    <h2 class="section-title">لوحة <span class="highlight">المدير</span></h2>
+    <h2 class="section-title">لوحة <span class="highlight">الأدمين</span></h2>
     <div id="adminContent"></div>
 </section>
 
@@ -782,7 +782,7 @@ function navigateTo(page) {
     const navLink = document.querySelector(`.nav-links a[data-page="${page}"]`);
     if (navLink) navLink.classList.add('active');
     if (page === 'dashboard') { if (!localStorage.getItem('token')) { showToast('❌ يرجى تسجيل الدخول كمنظم'); navigateTo('home'); return; } loadDashboard(); }
-    if (page === 'admin') { if (!localStorage.getItem('adminToken')) { showToast('❌ يرجى تسجيل الدخول كمدير'); navigateTo('home'); return; } loadAdminDashboard(); }
+    if (page === 'admin') { if (!localStorage.getItem('adminToken')) { showToast('❌ يرجى تسجيل الدخول كأدمين'); navigateTo('home'); return; } loadAdminDashboard(); }
     if (page === 'customer-dashboard') { if (!localStorage.getItem('customerToken')) { showToast('❌ يرجى تسجيل الدخول'); navigateTo('home'); return; } loadCustomerDashboard(); }
 }
 
@@ -948,7 +948,7 @@ function updateCustomerUI() {
     if (isLoggedIn) document.getElementById('customerNameDisplay').textContent = `👋 ${localStorage.getItem('customerName') || 'عميل'}`;
 }
 
-// المدير
+// الأدمين
 document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('adminLoginEmail').value.trim();
@@ -963,7 +963,7 @@ document.getElementById('adminLoginForm').addEventListener('submit', async (e) =
         if (res.ok) {
             localStorage.setItem('adminToken', data.token);
             localStorage.setItem('adminId', data.adminId);
-            showToast('✅ مرحباً مدير النظام');
+            showToast('✅ مرحباً أدمين النظام');
             closeModal('adminLoginModal');
             updateUI(); navigateTo('admin'); loadAdminDashboard(); refreshNotifications();
         } else showToast(`❌ ${data.message}`);
@@ -1560,7 +1560,7 @@ async function deleteEvent() {
 }
 
 // ============================================================
-// لوحة المدير
+// لوحة الأدمين
 // ============================================================
 async function loadAdminDashboard() {
     const token = localStorage.getItem('adminToken');
@@ -1609,7 +1609,7 @@ async function loadAdminDashboard() {
                 </div>
             `).join('')}
         `;
-    } catch { showToast('❌ فشل في تحميل لوحة المدير'); }
+    } catch { showToast('❌ فشل في تحميل لوحة الأدمين'); }
 }
 
 async function adminDeleteEvent(id) {
