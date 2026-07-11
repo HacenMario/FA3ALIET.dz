@@ -20,8 +20,8 @@ mongoose.connect(process.env.MONGO_URI)
 
       // إنشاء حساب المدير
       const admin = new Admin({
-        email: 'admin@halakati.dz',
-        password: 'Admin1234',
+        email: 'admin',
+        password: '654321',
         name: 'مدير النظام'
       });
 
