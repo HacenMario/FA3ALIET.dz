@@ -350,7 +350,7 @@
         <a href="#" onclick="navigateTo('events')" data-page="events">الفعاليات</a>
         <a href="#" onclick="navigateTo('dashboard')" data-page="dashboard" id="dashNavLink" style="display:none;">لوحة التحكم</a>
         <a href="#" onclick="navigateTo('admin')" data-page="admin" id="adminNavLink" style="display:none;">لوحة المدير</a>
-        <a href="#" onclick="navigateTo('customer-dashboard')" data-page="customer-dashboard" id="customerDashLink" style="display:none;">تذاكري</a>
+        <a href="#" onclick="navigateTo('customer-dashboard')" data-page="customer-dashboard" id="customerDashLink" style="display:none;">حسابي</a>
     </nav>
     <div class="header-actions">
         <span id="userDisplay" style="display:none;color:var(--gold);font-weight:500;font-size:0.7rem;"></span>
@@ -362,13 +362,13 @@
         </div>
         <button class="btn-outline btn-sm" onclick="toggleTheme()" id="themeToggle"><i class="fas fa-moon"></i></button>
         <div class="role-buttons">
-            <button class="btn-gold btn-sm" id="customerDashboardBtn" style="display:none;" onclick="navigateTo('customer-dashboard')"><i class="fas fa-ticket-alt"></i> تذاكري</button>
+            <button class="btn-gold btn-sm" id="customerDashboardBtn" style="display:none;" onclick="navigateTo('customer-dashboard')"><i class="fas fa-ticket-alt"></i> حسابي</button>
             <button class="btn-gold btn-sm" onclick="showMyTickets()" id="myTicketsBtn"><i class="fas fa-calendar-alt"></i> تذاكري</button>
             <button class="btn-outline btn-sm" id="customerLoginBtn" onclick="openModal('customerLoginModal')"><i class="fas fa-user"></i> دخول</button>
-            <button class="btn-primary btn-sm" id="customerRegisterBtn" onclick="openModal('customerRegisterModal')"><i class="fas fa-user-plus"></i> حساب</button>
+            <button class="btn-primary btn-sm" id="customerRegisterBtn" onclick="openModal('customerRegisterModal')"><i class="fas fa-user-plus"></i> إنشاء حساب عميل</button>
             <button class="btn-danger btn-sm" id="customerLogoutBtn" style="display:none;" onclick="customerLogout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
-            <button class="btn-outline btn-sm" id="loginBtn" onclick="openModal('loginModal')"><i class="fas fa-sign-in-alt"></i> منظم</button>
-            <button class="btn-primary btn-sm" id="registerBtn" onclick="openModal('registerModal')"><i class="fas fa-calendar-plus"></i> فعالية</button>
+            <button class="btn-outline btn-sm" id="loginBtn" onclick="openModal('loginModal')"><i class="fas fa-sign-in-alt"></i> حساب منظم</button>
+            <button class="btn-primary btn-sm" id="registerBtn" onclick="openModal('registerModal')"><i class="fas fa-calendar-plus"></i> إضافة فعالية</button>
             <button class="btn-danger btn-sm" id="logoutBtn" style="display:none;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
             <button class="btn-outline btn-sm" onclick="openModal('adminLoginModal')"><i class="fas fa-user-cog"></i> مدير</button>
             <button class="btn-danger btn-sm" id="adminLogoutBtn" style="display:none;" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
