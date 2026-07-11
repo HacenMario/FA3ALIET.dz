@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>فعاليات DZ - منصة حجز تذاكر الفعاليات في الجزائر</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #e94560;
+            --gold: #f5b042;
+            --light: #f8f9fa;
+            --dark: #0f0f1a;
+            --card-bg: #1e1e32;
+            --shadow: 0 8px 32px rgba(0,0,0,0.4);
+            --radius: 16px;
+            --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --success: #2ecc71;
+            --danger: #e74c3c;
+            --warning: #f1c40f;
+            --info: #3498db;
+            --whatsapp: #25D366;
+            --bg-body: var(--dark);
+            --bg-header: rgba(26,26,46,0.95);
+            --text-color: var(--light);
+            --card-bg: #1e1e32;
+            --input-bg: rgba(255,255,255,0.06);
+            --border-color: rgba(255,255,255,0.08);
+            --select-bg: #1e1e32;
+            --select-color: #fff;
+            --header-shadow: 0 4px 30px rgba(0,0,0,0.3);
+            --stat-bg: rgba(255,255,255,0.03);
+        }
+        [data-theme="light"] {
+            --bg-body: #f0f2f8;
+            --bg-header: rgba(255,255,255,0.95);
+            --text-color: #1a1a2e;
+            --card-bg: #ffffff;
+            --input-bg: rgba(0,0,0,0.04);
+            --border-color: rgba(0,0,0,0.08);
+            --select-bg: #ffffff;
+            --select-color: #1a1a2e;
+            --shadow: 0 8px 32px rgba(0,0,0,0.08);
+            --header-shadow: 0 4px 30px rgba(0,0,0,0.06);
+            --stat-bg: rgba(0,0,0,0.02);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-color);
+            direction: rtl;
+            line-height: 1.6;
+            min-height: 100vh;
+            transition: var(--transition);
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
+        a { text-decoration: none; color: inherit; }
+        button { font-family: 'Tajawal', sans-serif; cursor: pointer; border: none; }
+        input, select, textarea { font-family: 'Tajawal', sans-serif; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        .header {
+            background: var(--bg-header);
+            backdrop-filter: blur(12px);
+            padding: 0.5rem 2%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--accent);
+            flex-wrap: wrap;
+            gap: 4px;
+            transition: var(--transition);
+            box-shadow: var(--header-shadow);
+            transform: translateY(0);
+        }
+        .header.hidden-header { transform: translateY(-100%); }
+        .logo { font-size: 1.3rem; font-weight: 800; color: var(--gold); display: flex; align-items: center; gap: 6px; }
+        .logo i { color: var(--accent); }
+        .logo span { color: var(--text-color); font-weight: 300; }
+        .nav-links { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
+        .nav-links a {
+            color: var(--text-color); font-weight: 500; transition: var(--transition);
+            font-size: 0.85rem; padding: 4px 8px; border-radius: 8px; opacity: 0.7;
+            cursor: pointer; position: relative;
+        }
+        .nav-links a::after {
+            content: ''; position: absolute; bottom: -2px; left: 50%; width: 0;
+            height: 2px; background: var(--gold); transition: var(--transition);
+            transform: translateX(-50%);
+        }
+        .nav-links a:hover::after, .nav-links a.active::after { width: 60%; }
+        .nav-links a:hover, .nav-links a.active { color: var(--gold); opacity: 1; }
+        .header-actions { display: flex; gap: 0.3rem; align-items: center; flex-wrap: wrap; }
+        .header-actions button { font-size: 0.7rem; padding: 0.25rem 0.7rem; }
+
+        .btn-primary { background: linear-gradient(135deg, var(--accent), #c0392b); color: #fff; border-radius: 50px; font-weight: 700; transition: var(--transition); }
+        .btn-primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 25px rgba(233,69,96,0.5); }
+        .btn-gold { background: linear-gradient(135deg, var(--gold), #e67e22); color: var(--dark); border-radius: 50px; font-weight: 700; transition: var(--transition); }
+        .btn-gold:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 25px rgba(245,176,66,0.4); }
+        .btn-outline { background: transparent; border: 2px solid var(--gold); color: var(--gold); border-radius: 50px; font-weight: 700; transition: var(--transition); }
+        .btn-outline:hover { background: var(--gold); color: var(--dark); transform: translateY(-2px); }
+        .btn-success { background: var(--success); color: #fff; border-radius: 50px; font-weight: 600; transition: var(--transition); }
+        .btn-success:hover { opacity:0.85; transform:scale(1.04); }
+        .btn-danger { background: var(--danger); color: #fff; border-radius: 50px; font-weight: 600; transition: var(--transition); }
+        .btn-danger:hover { opacity:0.85; transform:scale(1.04); }
+        .btn-sm { padding: 0.2rem 0.7rem; font-size: 0.7rem; }
+
+        .notif-bell { position: relative; cursor: pointer; font-size: 1rem; color: var(--text-color); transition: var(--transition); padding: 4px 6px; }
+        .notif-bell:hover { color: var(--gold); }
+        .notif-bell .badge {
+            position: absolute; top: -4px; right: -2px;
+            background: var(--accent); color: #fff; border-radius: 50%;
+            padding: 0.1rem 0.35rem; font-size: 0.55rem; font-weight: 700;
+            min-width: 16px; text-align: center;
+        }
+        .notif-dropdown {
+            display: none; position: absolute; top: 35px; left: 0;
+            right: auto;
+            background: var(--card-bg); border-radius: var(--radius);
+            min-width: 300px;
+            max-height: 350px; overflow-y: auto;
+            border: 1px solid var(--border-color); box-shadow: var(--shadow); z-index: 1001;
+        }
+        .notif-dropdown.active { display: block; }
+        .notif-dropdown .notif-item { padding: 0.4rem 0.7rem; border-bottom: 1px solid var(--border-color); transition: var(--transition); }
+        .notif-dropdown .notif-item:hover { background: rgba(255,255,255,0.03); }
+        .notif-dropdown .notif-item .notif-title { font-weight: 600; color: var(--gold); font-size: 0.8rem; }
+        .notif-dropdown .notif-item .notif-time { font-size: 0.55rem; color: #888; }
+        .notif-dropdown .notif-item .notif-msg { color: var(--text-color); font-size: 0.75rem; opacity: 0.8; }
+        .notif-dropdown .notif-item.unread { border-right: 3px solid var(--accent); }
+        .notif-dropdown .notif-empty { padding: 1rem; text-align: center; color: #888; font-size: 0.8rem; }
+
+        .section { padding: 1rem 2%; min-height: 70vh; transition: var(--transition); animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+        .section-title { font-size: 1.8rem; font-weight: 800; margin-bottom: 0.3rem; text-align: center; color: var(--text-color); }
+        .section-title .highlight { color: var(--gold); }
+        .section-subtitle { text-align: center; color: var(--text-color); opacity: 0.6; margin-bottom: 1.2rem; font-size: 0.9rem; }
+        .hidden { display: none !important; }
+
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; max-width: 1400px; margin: 0 auto; }
+
+        .event-card {
+            background: var(--card-bg); border-radius: var(--radius); overflow: hidden;
+            border: 1px solid var(--border-color); transition: var(--transition);
+            cursor: pointer; box-shadow: var(--shadow);
+            animation: cardAppear 0.6s ease both;
+        }
+        .event-card:hover { transform: translateY(-8px) scale(1.01); border-color: var(--gold); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+        .event-card .cover {
+            height: 160px;
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 10px;
+            background-size: cover;
+            background-position: center;
+        }
+        .event-card .cover .default-icon { font-size: 3rem; color: var(--gold); }
+        .event-card .cover .cover-image {
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; top: 0; left: 0;
+        }
+        .event-card .cover .overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 8px 12px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .event-card .cover .category-badge {
+            background: var(--accent); color: #fff;
+            padding: 0.1rem 0.6rem; border-radius: 50px;
+            font-size: 0.6rem;
+        }
+        .event-card .cover .date-badge {
+            background: rgba(0,0,0,0.7); color: var(--gold);
+            padding: 0.1rem 0.6rem; border-radius: 50px;
+            font-size: 0.6rem;
+        }
+        .event-card .cover .featured-badge {
+            position: absolute; top: 8px; left: 8px;
+            background: var(--accent); padding: 0.1rem 0.6rem;
+            border-radius: 50px; font-size: 0.55rem; color: #fff;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+        .event-card .body { padding: 0.8rem 0.9rem; }
+        .event-card .body h3 { font-size: 1rem; margin-bottom: 0.1rem; color: var(--gold); }
+        .event-card .body .venue { color: var(--text-color); opacity: 0.6; font-size: 0.75rem; margin-bottom: 0.2rem; }
+        .event-card .body .venue i { color: var(--accent); margin-left: 3px; }
+        .event-card .body .ticket-info { color: var(--gold); font-weight: 700; font-size: 0.85rem; margin: 0.15rem 0; }
+        .event-card .body .tickets-left { color: var(--text-color); opacity: 0.5; font-size: 0.7rem; }
+        .event-card .body .tags { display: flex; gap: 0.2rem; flex-wrap: wrap; margin: 0.3rem 0; }
+        .event-card .body .tags span { background: rgba(233,69,96,0.15); color: var(--accent); padding: 0.05rem 0.4rem; border-radius: 50px; font-size: 0.55rem; }
+        .event-card .body .btn-book { width: 100%; padding: 0.4rem; border-radius: 50px; background: linear-gradient(135deg, var(--gold), #e67e22); color: var(--dark); font-weight: 700; font-size: 0.8rem; transition: var(--transition); }
+        .event-card .body .btn-book:hover { transform: scale(1.03); }
+
+        .dashboard-container { display: grid; grid-template-columns: 200px 1fr; gap: 1rem; max-width: 1400px; margin: 0 auto; }
+        .sidebar {
+            background: var(--card-bg); border-radius: var(--radius); padding: 0.8rem;
+            border: 1px solid var(--border-color); height: fit-content;
+            position: sticky; top: 70px; box-shadow: var(--shadow); transition: var(--transition);
+        }
+        .sidebar .profile { text-align: center; padding-bottom: 0.6rem; border-bottom: 1px solid var(--border-color); }
+        .sidebar .profile .avatar { width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--gold)); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; margin: 0 auto 0.3rem; }
+        .sidebar .profile h4 { color: var(--gold); font-size: 0.85rem; }
+        .sidebar .profile p { color: var(--text-color); opacity: 0.5; font-size: 0.7rem; }
+        .sidebar .menu { margin-top: 0.6rem; }
+        .sidebar .menu a { display: flex; align-items: center; gap: 6px; padding: 0.4rem 0.6rem; border-radius: 8px; color: var(--text-color); transition: var(--transition); margin-bottom: 0.1rem; font-size: 0.75rem; opacity: 0.7; cursor: pointer; }
+        .sidebar .menu a:hover, .sidebar .menu a.active { background: rgba(233,69,96,0.12); color: var(--gold); opacity: 1; }
+        .sidebar .menu a i { width: 16px; font-size: 0.8rem; }
+        .dashboard-content { background: var(--card-bg); border-radius: var(--radius); padding: 0.8rem; border: 1px solid var(--border-color); min-height: 350px; box-shadow: var(--shadow); transition: var(--transition); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 0.5rem; margin-bottom: 1rem; }
+        .stat-card { background: var(--stat-bg); padding: 0.6rem; border-radius: 12px; text-align: center; border: 1px solid var(--border-color); transition: var(--transition); }
+        .stat-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+        .stat-card .number { font-size: 1.3rem; font-weight: 800; color: var(--gold); }
+        .stat-card .label { color: var(--text-color); opacity: 0.6; font-size: 0.65rem; }
+
+        .table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.35rem 0.5rem; text-align: right; border-bottom: 1px solid var(--border-color); font-size: 0.75rem; }
+        th { color: var(--gold); font-weight: 700; background: rgba(255,255,255,0.03); }
+        td { color: var(--text-color); }
+        .status { padding: 0.1rem 0.4rem; border-radius: 50px; font-size: 0.6rem; font-weight: 600; }
+        .status.confirmed { background: rgba(46,204,113,0.2); color: #2ecc71; }
+        .status.pending { background: rgba(241,196,15,0.2); color: #f1c40f; }
+        .status.cancelled { background: rgba(231,76,60,0.2); color: #e74c3c; }
+        .status.used { background: rgba(52,152,219,0.2); color: #3498db; }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            z-index: 2000; justify-content: center; align-items: center; padding: 0.8rem;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            background: var(--card-bg); border-radius: var(--radius);
+            max-width: 520px; width: 100%; padding: 1rem;
+            border: 1px solid var(--border-color); max-height: 90vh;
+            overflow-y: auto; box-shadow: var(--shadow); transition: var(--transition);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn { from { opacity:0; transform:scale(0.9) translateY(30px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        .modal-box .modal-close { float: left; font-size: 1.3rem; color: var(--text-color); background: none; border: none; transition: var(--transition); cursor: pointer; }
+        .modal-box .modal-close:hover { color: var(--accent); transform: rotate(90deg); }
+        .modal-box h2 { color: var(--gold); margin-bottom: 0.8rem; text-align: center; font-size: 1.1rem; }
+        .form-group { margin-bottom: 0.6rem; }
+        .form-group label { display: block; margin-bottom: 0.1rem; color: var(--text-color); font-weight: 500; font-size: 0.75rem; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 0.4rem 0.7rem;
+            border-radius: 8px; border: 1px solid var(--border-color);
+            background: var(--input-bg); color: var(--text-color);
+            font-size: 0.8rem; transition: var(--transition);
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: var(--gold);
+            background: rgba(255,255,255,0.08);
+        }
+        .form-group textarea { resize: vertical; min-height: 45px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+
+        .filter-section { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; margin-bottom: 1rem; background: rgba(255,255,255,0.02); padding: 0.5rem 0.7rem; border-radius: var(--radius); border: 1px solid var(--border-color); }
+        .filter-section input, .filter-section select { padding: 0.35rem 0.7rem; border-radius: 50px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); min-width: 110px; font-size: 0.75rem; }
+        .filter-section select option { background: var(--select-bg); color: var(--select-color); }
+        .filter-section input::placeholder { color: var(--text-color); opacity: 0.4; }
+        .filter-section button { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
+
+        .toast {
+            position: fixed; bottom: 20px; right: 20px;
+            background: var(--card-bg); padding: 0.5rem 1rem;
+            border-radius: 12px; border-right: 4px solid var(--gold);
+            box-shadow: var(--shadow); transform: translateY(120px);
+            opacity: 0; transition: all 0.4s ease; z-index: 3000;
+            font-weight: 500; max-width: 90%; border: 1px solid var(--border-color);
+            font-size: 0.85rem;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast i { color: var(--gold); margin-left: 6px; }
+
+        .review-item { background: rgba(255,255,255,0.02); padding: 0.5rem; border-radius: 10px; margin-bottom: 0.4rem; border: 1px solid var(--border-color); }
+        .review-item .review-header { display: flex; justify-content: space-between; font-weight: 600; color: var(--gold); font-size: 0.8rem; }
+        .review-item .review-comment { color: var(--text-color); opacity: 0.8; font-size: 0.75rem; margin-top: 0.1rem; }
+        .review-item .review-date { color: var(--text-color); opacity: 0.4; font-size: 0.6rem; }
+
+        .role-buttons { display: flex; gap: 0.3rem; flex-wrap: wrap; align-items: center; }
+
+        /* ===== تحسينات الهواتف ===== */
+        @media (max-width: 768px) {
+            .header { padding: 0.4rem 3%; gap: 4px; }
+            .logo { font-size: 1.1rem; }
+            .nav-links { gap: 0.2rem; flex-wrap: wrap; justify-content: center; }
+            .nav-links a { font-size: 0.8rem; padding: 4px 8px; }
+            .header-actions { gap: 0.3rem; justify-content: center; flex-wrap: wrap; }
+            .header-actions button { font-size: 0.65rem; padding: 0.2rem 0.5rem; min-height: 32px; min-width: 36px; }
+            body { font-size: 15px; }
+            .section { padding: 0.8rem 3%; }
+            .section-title { font-size: 1.5rem; }
+            .grid-3 { grid-template-columns: 1fr; gap: 0.8rem; }
+            .event-card .cover { height: 120px; }
+            .dashboard-container { grid-template-columns: 1fr; gap: 0.6rem; }
+            .sidebar { position: static; padding: 0.6rem; }
+            .sidebar .menu { display: flex; flex-wrap: wrap; gap: 0.2rem; justify-content: center; }
+            .sidebar .menu a { font-size: 0.7rem; padding: 0.3rem 0.5rem; flex: 1 0 auto; min-width: 50px; text-align: center; justify-content: center; }
+            .dashboard-content { padding: 0.6rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 0.3rem; }
+            .stat-card { padding: 0.4rem; }
+            .stat-card .number { font-size: 1.1rem; }
+            .notif-dropdown { min-width: 260px; left: -100px !important; top: 32px; }
+            .filter-section { flex-direction: column; gap: 0.4rem; padding: 0.6rem; }
+            .filter-section input, .filter-section select { width: 100%; min-width: unset; font-size: 0.9rem; padding: 0.4rem 0.6rem; }
+            .filter-section button { width: 100%; padding: 0.4rem; font-size: 0.85rem; }
+            .modal-box { max-width: 95%; padding: 1rem; }
+            .form-row { grid-template-columns: 1fr; gap: 0.4rem; }
+            .btn-sm { font-size: 0.8rem; padding: 0.3rem 0.7rem; min-height: 34px; }
+        }
+        @media (max-width: 480px) {
+            body { font-size: 14px; }
+            .header-actions button { font-size: 0.6rem; padding: 0.15rem 0.4rem; min-height: 28px; }
+            .notif-dropdown { min-width: 200px; left: -80px !important; }
+            .section-title { font-size: 1.3rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 0.2rem; }
+            .event-card .body h3 { font-size: 0.95rem; }
+            .modal-box { padding: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== الهيدر ===== -->
+<header class="header" id="mainHeader">
+    <div class="logo"><i class="fas fa-ticket-alt"></i> فعاليات <span>DZ</span></div>
+    <nav class="nav-links">
+        <a href="#" class="active" onclick="navigateTo('home')" data-page="home">الرئيسية</a>
+        <a href="#" onclick="navigateTo('events')" data-page="events">الفعاليات</a>
+        <a href="#" onclick="navigateTo('dashboard')" data-page="dashboard" id="dashNavLink" style="display:none;">لوحة التحكم</a>
+        <a href="#" onclick="navigateTo('admin')" data-page="admin" id="adminNavLink" style="display:none;">لوحة المدير</a>
+        <a href="#" onclick="navigateTo('customer-dashboard')" data-page="customer-dashboard" id="customerDashLink" style="display:none;">تذاكري</a>
+    </nav>
+    <div class="header-actions">
+        <span id="userDisplay" style="display:none;color:var(--gold);font-weight:500;font-size:0.7rem;"></span>
+        <span id="customerNameDisplay" style="display:none;color:var(--gold);font-weight:500;font-size:0.7rem;"></span>
+        <div class="notif-bell" onclick="toggleNotifications()" id="notifBell">
+            <i class="fas fa-bell"></i>
+            <span class="badge" id="notifBadge">0</span>
+            <div class="notif-dropdown" id="notifDropdown"><div id="notifList"></div></div>
+        </div>
+        <button class="btn-outline btn-sm" onclick="toggleTheme()" id="themeToggle"><i class="fas fa-moon"></i></button>
+        <div class="role-buttons">
+            <button class="btn-gold btn-sm" id="customerDashboardBtn" style="display:none;" onclick="navigateTo('customer-dashboard')"><i class="fas fa-ticket-alt"></i> تذاكري</button>
+            <button class="btn-gold btn-sm" onclick="showMyTickets()" id="myTicketsBtn"><i class="fas fa-calendar-alt"></i> تذاكري</button>
+            <button class="btn-outline btn-sm" id="customerLoginBtn" onclick="openModal('customerLoginModal')"><i class="fas fa-user"></i> دخول</button>
+            <button class="btn-primary btn-sm" id="customerRegisterBtn" onclick="openModal('customerRegisterModal')"><i class="fas fa-user-plus"></i> حساب</button>
+            <button class="btn-danger btn-sm" id="customerLogoutBtn" style="display:none;" onclick="customerLogout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+            <button class="btn-outline btn-sm" id="loginBtn" onclick="openModal('loginModal')"><i class="fas fa-sign-in-alt"></i> منظم</button>
+            <button class="btn-primary btn-sm" id="registerBtn" onclick="openModal('registerModal')"><i class="fas fa-calendar-plus"></i> فعالية</button>
+            <button class="btn-danger btn-sm" id="logoutBtn" style="display:none;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+            <button class="btn-outline btn-sm" onclick="openModal('adminLoginModal')"><i class="fas fa-user-cog"></i> مدير</button>
+            <button class="btn-danger btn-sm" id="adminLogoutBtn" style="display:none;" onclick="adminLogout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+        </div>
+    </div>
+</header>
+
+<!-- ===== التنبيه ===== -->
+<div class="toast" id="toast"><i class="fas fa-check-circle"></i> <span id="toastMsg">تم!</span></div>
+
+<!-- ===== النوافذ المنبثقة ===== -->
+
+<!-- تسجيل فعالية (منظم) -->
+<div class="modal-overlay" id="registerModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+        <h2><i class="fas fa-calendar-plus"></i> إضافة فعالية جديدة</h2>
+        <form id="registerForm">
+            <div class="form-group"><label>اسم الفعالية</label><input type="text" id="regEventName" required></div>
+            <div class="form-group"><label>الوصف</label><textarea id="regEventDesc" required></textarea></div>
+            <div class="form-group"><label>التصنيف</label>
+                <select id="regCategory" required>
+                    <option value="concert">حفلة موسيقية</option>
+                    <option value="conference">مؤتمر</option>
+                    <option value="workshop">ورشة عمل</option>
+                    <option value="festival">مهرجان</option>
+                    <option value="sports">رياضي</option>
+                    <option value="art">فني</option>
+                    <option value="theatre">مسرح</option>
+                    <option value="comedy">كوميدي</option>
+                    <option value="other">أخرى</option>
+                </select>
+            </div>
+            <div class="form-group"><label>المكان</label><input type="text" id="regVenue" required></div>
+            <div class="form-group"><label>المدينة</label>
+                <select id="regCity" required>
+                    <option value="">اختر المدينة</option>
+                    <option value="الجزائر">الجزائر العاصمة</option>
+                    <option value="وهران">وهران</option>
+                    <option value="قسنطينة">قسنطينة</option>
+                    <option value="عنابة">عنابة</option>
+                    <option value="باتنة">باتنة</option>
+                    <option value="بجاية">بجاية</option>
+                    <option value="تيبازة">تيبازة</option>
+                    <option value="سطيف">سطيف</option>
+                    <option value="بسكرة">بسكرة</option>
+                    <option value="تلمسان">تلمسان</option>
+                    <option value="سكيكدة">سكيكدة</option>
+                </select>
+            </div>
+            <div class="form-group"><label>العنوان التفصيلي</label><input type="text" id="regAddress" required></div>
+            <div class="form-row">
+                <div class="form-group"><label>تاريخ البدء</label><input type="date" id="regStartDate" required></div>
+                <div class="form-group"><label>تاريخ الانتهاء</label><input type="date" id="regEndDate" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label>وقت البدء</label><input type="time" id="regStartTime" required></div>
+                <div class="form-group"><label>وقت الانتهاء</label><input type="time" id="regEndTime" required></div>
+            </div>
+            <div class="form-group"><label>اسم المنظم</label><input type="text" id="regOrganizer" required></div>
+            <div class="form-group"><label>هاتف المنظم</label><input type="tel" id="regOrganizerPhone" required></div>
+            <div class="form-group"><label>بريد المنظم</label><input type="email" id="regOrganizerEmail" required></div>
+            <div class="form-group"><label>كلمة المرور</label><input type="password" id="regPassword" required minlength="6"></div>
+            <div class="form-group"><label>فئات التذاكر (اسم:السعر:العدد، مفصولة بفاصلة)</label>
+                <input type="text" id="regTicketTiers" placeholder="VIP:5000:50, عادي:2000:100, خلفي:1000:50" required>
+            </div>
+            <div class="form-group"><label>شعار الفعالية</label><input type="file" id="regLogo" accept="image/*"></div>
+            <div class="form-group"><label>صورة الغلاف</label><input type="file" id="regCover" accept="image/*"></div>
+            <button type="submit" class="btn-gold" style="width:100%;padding:0.5rem;"><i class="fas fa-plus-circle"></i> إنشاء الفعالية</button>
+        </form>
+    </div>
+</div>
+
+<!-- دخول المنظم -->
+<div class="modal-overlay" id="loginModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+        <h2><i class="fas fa-sign-in-alt"></i> دخول المنظم</h2>
+        <form id="loginForm">
+            <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="loginEmail" required></div>
+            <div class="form-group"><label>كلمة المرور</label><input type="password" id="loginPassword" required></div>
+            <button type="submit" class="btn-gold" style="width:100%;padding:0.5rem;">دخول</button>
+        </form>
+    </div>
+</div>
+
+<!-- تسجيل عميل -->
+<div class="modal-overlay" id="customerRegisterModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('customerRegisterModal')">&times;</button>
+        <h2><i class="fas fa-user-plus"></i> حساب جديد</h2>
+        <form id="customerRegisterForm">
+            <div class="form-group"><label>الاسم</label><input type="text" id="custName" required></div>
+            <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="custEmail" required></div>
+            <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="custPhone" required></div>
+            <div class="form-group"><label>كلمة المرور</label><input type="password" id="custPassword" required minlength="6"></div>
+            <button type="submit" class="btn-gold" style="width:100%;padding:0.5rem;"><i class="fas fa-user-plus"></i> إنشاء الحساب</button>
+        </form>
+    </div>
+</div>
+
+<!-- دخول عميل -->
+<div class="modal-overlay" id="customerLoginModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('customerLoginModal')">&times;</button>
+        <h2><i class="fas fa-sign-in-alt"></i> دخول العميل</h2>
+        <form id="customerLoginForm">
+            <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="custLoginEmail" required></div>
+            <div class="form-group"><label>كلمة المرور</label><input type="password" id="custLoginPassword" required></div>
+            <button type="submit" class="btn-gold" style="width:100%;padding:0.5rem;">دخول</button>
+        </form>
+    </div>
+</div>
+
+<!-- دخول المدير -->
+<div class="modal-overlay" id="adminLoginModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('adminLoginModal')">&times;</button>
+        <h2><i class="fas fa-user-cog"></i> دخول المدير</h2>
+        <form id="adminLoginForm">
+            <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="adminLoginEmail" required></div>
+            <div class="form-group"><label>كلمة المرور</label><input type="password" id="adminLoginPassword" required></div>
+            <button type="submit" class="btn-gold" style="width:100%;padding:0.5rem;">دخول</button>
+        </form>
+    </div>
+</div>
+
+<!-- شراء تذكرة -->
+<div class="modal-overlay" id="ticketModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('ticketModal')">&times;</button>
+        <h2><i class="fas fa-ticket-alt"></i> شراء تذكرة</h2>
+        <form id="ticketForm">
+            <div class="form-group"><label>الفعالية</label><input type="text" id="ticketEventName" readonly style="background:var(--input-bg);color:var(--gold);"></div>
+            <div class="form-group"><label>اختر فئة التذكرة</label>
+                <select id="ticketTier" required onchange="updateTicketPrice()"></select>
+            </div>
+            <div class="form-group"><label>عدد التذاكر</label>
+                <input type="number" id="ticketQuantity" value="1" min="1" onchange="updateTicketPrice()" required>
+            </div>
+            <div class="form-group"><label>السعر الإجمالي</label>
+                <input type="text" id="ticketTotalPrice" readonly style="background:var(--input-bg);color:var(--gold);font-weight:700;">
+            </div>
+            <div class="form-group"><label>الاسم الكامل</label><input type="text" id="ticketCustomerName" required></div>
+            <div class="form-group"><label>رقم الهاتف</label><input type="tel" id="ticketCustomerPhone" required></div>
+            <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="ticketCustomerEmail" required></div>
+            <div class="form-group"><label>طريقة الدفع</label>
+                <select id="ticketPayment">
+                    <option value="cash">دفع نقدي عند الباب</option>
+                    <option value="online">دفع إلكتروني (قريباً)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-gold" style="width:100%;padding:0.5rem;"><i class="fas fa-check-circle"></i> تأكيد الشراء</button>
+        </form>
+    </div>
+</div>
+
+<!-- تذاكري -->
+<div class="modal-overlay" id="myTicketsModal">
+    <div class="modal-box" style="max-width:700px;">
+        <button class="modal-close" onclick="closeModal('myTicketsModal')">&times;</button>
+        <h2><i class="fas fa-ticket-alt"></i> تذاكري</h2>
+        <div id="myTicketsList" style="margin-top:0.6rem;"></div>
+    </div>
+</div>
+
+<!-- تفاصيل الفعالية -->
+<div class="modal-overlay" id="eventDetailsModal">
+    <div class="modal-box" style="max-width:650px;">
+        <button class="modal-close" onclick="closeModal('eventDetailsModal')">&times;</button>
+        <div id="eventDetailsContent"></div>
+    </div>
+</div>
+
+<!-- تقييم -->
+<div class="modal-overlay" id="reviewModal">
+    <div class="modal-box">
+        <button class="modal-close" onclick="closeModal('reviewModal')">&times;</button>
+        <h2><i class="fas fa-star"></i> تقييم الفعالية</h2>
+        <form id="reviewForm">
+            <div class="form-group"><label>تقييمك (1-5)</label>
+                <select id="reviewRating" required>
+                    <option value="5">⭐ 5 - ممتاز</option>
+                    <option value="4">⭐ 4 - جيد جداً</option>
+                    <option value="3">⭐ 3 - جيد</option>
+                    <option value="2">⭐ 2 - مقبول</option>
+                    <option value="1">⭐ 1 - سيء</option>
+                </select>
+            </div>
+            <div class="form-group"><label>تعليقك</label><textarea id="reviewComment" required></textarea></div>
+            <input type="hidden" id="reviewEventId">
+            <button type="submit" class="btn-gold" style="width:100%;padding:0.5rem;"><i class="fas fa-paper-plane"></i> إرسال</button>
+        </form>
+    </div>
+</div>
+
+<!-- ===== الصفحات ===== -->
+
+<!-- الرئيسية -->
+<section class="section" id="page-home">
+    <div style="text-align:center;padding:0.8rem 0;">
+        <h1 class="section-title">اكتشف <span class="highlight">أفضل الفعاليات والمناسبات</span> في الجزائر 🇩🇿</h1>
+        <p class="section-subtitle">احجز تذاكرك بسهولة للحفلات والمؤتمرات وورش العمل والمهرجانات</p>
+        <button class="btn-gold" style="padding:0.5rem 1.8rem;font-size:0.85rem;" onclick="navigateTo('events')"><i class="fas fa-search"></i> استعرض الفعاليات</button>
+    </div>
+    <div style="max-width:1100px;margin:0.8rem auto;">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="number" id="totalEvents">0</div><div class="label">فعالية</div></div>
+            <div class="stat-card"><div class="number" id="totalTickets">0</div><div class="label">تذكرة مباعة</div></div>
+            <div class="stat-card"><div class="number" id="avgRating">⭐ 0</div><div class="label">متوسط التقييم</div></div>
+            <div class="stat-card"><div class="number">🇩🇿</div><div class="label">فعاليات جزائرية</div></div>
+        </div>
+    </div>
+    <h2 style="text-align:center;font-size:1.3rem;margin-bottom:0.8rem;color:var(--text-color);">🔥 الفعاليات الأكثر شهرة</h2>
+    <div class="grid-3" id="homeEventsGrid"></div>
+</section>
+
+<!-- الفعاليات -->
+<section class="section hidden" id="page-events">
+    <h2 class="section-title">جميع <span class="highlight">الفعاليات</span></h2>
+    <div class="filter-section">
+        <input type="text" id="searchEvent" placeholder="🔍 ابحث عن فعالية..." />
+        <select id="filterCity">
+            <option value="">جميع المدن</option>
+            <option value="الجزائر">الجزائر العاصمة</option>
+            <option value="وهران">وهران</option>
+            <option value="قسنطينة">قسنطينة</option>
+            <option value="عنابة">عنابة</option>
+            <option value="باتنة">باتنة</option>
+            <option value="بجاية">بجاية</option>
+            <option value="تيبازة">تيبازة</option>
+            <option value="سطيف">سطيف</option>
+            <option value="بسكرة">بسكرة</option>
+            <option value="تلمسان">تلمسان</option>
+        </select>
+        <select id="filterCategory">
+            <option value="">جميع التصنيفات</option>
+            <option value="concert">حفلة موسيقية</option>
+            <option value="conference">مؤتمر</option>
+            <option value="workshop">ورشة عمل</option>
+            <option value="festival">مهرجان</option>
+            <option value="sports">رياضي</option>
+            <option value="art">فني</option>
+            <option value="theatre">مسرح</option>
+            <option value="comedy">كوميدي</option>
+            <option value="other">أخرى</option>
+        </select>
+        <select id="filterStatus">
+            <option value="">جميع الحالات</option>
+            <option value="upcoming">قادمة</option>
+            <option value="ongoing">جارية</option>
+            <option value="completed">منتهية</option>
+        </select>
+        <button class="btn-primary btn-sm" onclick="applyFilters()"><i class="fas fa-filter"></i> فلتر</button>
+        <button class="btn-gold btn-sm" onclick="getNearbyEvents()"><i class="fas fa-map-marker-alt"></i> القريبة</button>
+    </div>
+    <div id="eventsResultCount" style="text-align:center;color:var(--text-color);opacity:0.4;margin-bottom:0.4rem;font-size:0.8rem;"></div>
+    <div class="grid-3" id="allEventsGrid"></div>
+</section>
+
+<!-- لوحة تحكم المنظم -->
+<section class="section hidden" id="page-dashboard">
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="profile">
+                <div class="avatar"><i class="fas fa-calendar-alt"></i></div>
+                <h4 id="dashEventName">فعاليتي</h4>
+                <p id="dashEventCity">المدينة</p>
+                <div style="margin-top:0.15rem;font-size:0.65rem;color:var(--gold);" id="dashRating"></div>
+            </div>
+            <div class="menu">
+                <a href="#" class="active" data-dash="overview"><i class="fas fa-chart-pie"></i> نظرة عامة</a>
+                <a href="#" data-dash="tickets"><i class="fas fa-ticket-alt"></i> التذاكر</a>
+                <a href="#" data-dash="tiers"><i class="fas fa-layer-group"></i> فئات التذاكر</a>
+                <a href="#" data-dash="reviews"><i class="fas fa-star"></i> التقييمات</a>
+                <a href="#" data-dash="settings"><i class="fas fa-cog"></i> الإعدادات</a>
+            </div>
+        </aside>
+        <div class="dashboard-content" id="dashContent">
+            <div id="dashOverview">
+                <h3 style="color:var(--gold);margin-bottom:0.6rem;font-size:1rem;"><i class="fas fa-chart-line"></i> نظرة عامة</h3>
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="number" id="statTotalTickets">0</div><div class="label">إجمالي التذاكر</div></div>
+                    <div class="stat-card"><div class="number" id="statSoldTickets">0</div><div class="label">مباعة</div></div>
+                    <div class="stat-card"><div class="number" id="statRevenue">0</div><div class="label">الإيرادات (دج)</div></div>
+                    <div class="stat-card"><div class="number" id="statRemaining">0</div><div class="label">متبقية</div></div>
+                </div>
+                <div class="table-wrap">
+                    <h4 style="color:var(--gold);margin:0.5rem 0 0.15rem;font-size:0.85rem;">📋 أحدث التذاكر</h4>
+                    <table><thead><tr><th>العميل</th><th>الفئة</th><th>السعر</th><th>العدد</th><th>الحالة</th></tr></thead>
+                    <tbody id="dashTicketsTable"></tbody></table>
+                </div>
+            </div>
+            <div id="dashTickets" class="hidden">
+                <h3 style="color:var(--gold);margin-bottom:0.6rem;font-size:1rem;"><i class="fas fa-ticket-alt"></i> إدارة التذاكر</h3>
+                <div class="table-wrap">
+                    <table><thead><tr><th>العميل</th><th>الفئة</th><th>السعر</th><th>العدد</th><th>الحالة</th><th>إجراء</th></tr></thead>
+                    <tbody id="dashAllTickets"></tbody></table>
+                </div>
+            </div>
+            <div id="dashTiers" class="hidden">
+                <h3 style="color:var(--gold);margin-bottom:0.6rem;font-size:1rem;"><i class="fas fa-layer-group"></i> فئات التذاكر</h3>
+                <button class="btn-gold btn-sm" onclick="addTier()"><i class="fas fa-plus"></i> إضافة فئة</button>
+                <div id="tiersList" style="margin-top:0.4rem;"></div>
+            </div>
+            <div id="dashReviews" class="hidden">
+                <h3 style="color:var(--gold);margin-bottom:0.6rem;font-size:1rem;"><i class="fas fa-star"></i> التقييمات</h3>
+                <div id="reviewsList"></div>
+            </div>
+            <div id="dashSettings" class="hidden">
+                <h3 style="color:var(--gold);margin-bottom:0.6rem;font-size:1rem;"><i class="fas fa-cog"></i> إعدادات الفعالية</h3>
+                <form id="settingsForm">
+                    <div class="form-group"><label>اسم الفعالية</label><input type="text" id="setEventName"></div>
+                    <div class="form-group"><label>المدينة</label><input type="text" id="setEventCity"></div>
+                    <div class="form-group"><label>المكان</label><input type="text" id="setEventVenue"></div>
+                    <div class="form-group"><label>الوصف</label><textarea id="setEventDesc"></textarea></div>
+                    <button type="submit" class="btn-gold btn-sm"><i class="fas fa-save"></i> حفظ التغييرات</button>
+                    <hr style="border-color:var(--border-color);margin:0.6rem 0;">
+                    <button type="button" class="btn-danger btn-sm" onclick="deleteEvent()"><i class="fas fa-calendar-times"></i> حذف الفعالية</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- لوحة المدير -->
+<section class="section hidden" id="page-admin">
+    <h2 class="section-title">لوحة <span class="highlight">المدير</span></h2>
+    <div id="adminContent"></div>
+</section>
+
+<!-- حساب العميل (تذاكري) -->
+<section class="section hidden" id="page-customer-dashboard">
+    <h2 class="section-title">تذاكري</h2>
+    <div id="customerDashboardContent"></div>
+</section>
+
+<script>
+// ============================================================
+// الإعدادات الأساسية
+// ============================================================
+const API_BASE = 'http://localhost:5005/api';
+const SOCKET_URL = 'http://localhost:5005';
+let allEvents = [];
+let currentLang = localStorage.getItem('lang') || 'ar';
+let currentTheme = localStorage.getItem('theme') || 'dark';
+let socket = null;
+
+// ============================================================
+// الترجمة والوضع
+// ============================================================
+function toggleTheme() {
+    currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    localStorage.setItem('theme', currentTheme);
+    document.getElementById('themeToggle').innerHTML = currentTheme === 'dark' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+}
+if (localStorage.getItem('theme')) {
+    currentTheme = localStorage.getItem('theme');
+    document.documentElement.setAttribute('data-theme', currentTheme);
+    document.getElementById('themeToggle').innerHTML = currentTheme === 'dark' ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+}
+
+// ============================================================
+// Socket.io
+// ============================================================
+function initSocket() {
+    socket = io(SOCKET_URL);
+    socket.on('connect', () => console.log('🔌 متصل بالخادم'));
+    socket.on('new-notification', (data) => {
+        showToast(`🔔 ${data.title}: ${data.message}`);
+        refreshNotifications();
+    });
+    const eventId = localStorage.getItem('eventId');
+    const customerId = localStorage.getItem('customerId');
+    if (eventId) socket.emit('join-event', eventId);
+    if (customerId) socket.emit('join-customer', customerId);
+}
+
+// ============================================================
+// الوظائف الأساسية
+// ============================================================
+function showToast(msg) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('show'), 4000);
+}
+function openModal(id) { document.getElementById(id).classList.add('active'); document.body.style.overflow = 'hidden'; }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = 'auto'; }
+document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e) { if (e.target === this) closeModal(this.id); }));
+
+let lastScrollY = 0;
+window.addEventListener('scroll', () => {
+    const header = document.getElementById('mainHeader');
+    if (window.scrollY > 80 && window.scrollY > lastScrollY) header.classList.add('hidden-header');
+    else header.classList.remove('hidden-header');
+    lastScrollY = window.scrollY;
+});
+
+// ============================================================
+// التنقل بين الصفحات
+// ============================================================
+function navigateTo(page) {
+    document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+    const target = document.getElementById(`page-${page}`);
+    if (!target) { showToast(`❌ الصفحة غير موجودة`); return; }
+    target.classList.remove('hidden');
+    document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+    const navLink = document.querySelector(`.nav-links a[data-page="${page}"]`);
+    if (navLink) navLink.classList.add('active');
+    if (page === 'dashboard') { if (!localStorage.getItem('token')) { showToast('❌ يرجى تسجيل الدخول كمنظم'); navigateTo('home'); return; } loadDashboard(); }
+    if (page === 'admin') { if (!localStorage.getItem('adminToken')) { showToast('❌ يرجى تسجيل الدخول كمدير'); navigateTo('home'); return; } loadAdminDashboard(); }
+    if (page === 'customer-dashboard') { if (!localStorage.getItem('customerToken')) { showToast('❌ يرجى تسجيل الدخول'); navigateTo('home'); return; } loadCustomerDashboard(); }
+}
+
+// ============================================================
+// المصادقة
+// ============================================================
+
+// تسجيل فعالية (منظم)
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('regEventName').value.trim();
+    const description = document.getElementById('regEventDesc').value.trim();
+    const category = document.getElementById('regCategory').value;
+    const venue = document.getElementById('regVenue').value.trim();
+    const city = document.getElementById('regCity').value;
+    const address = document.getElementById('regAddress').value.trim();
+    const startDate = document.getElementById('regStartDate').value;
+    const endDate = document.getElementById('regEndDate').value;
+    const startTime = document.getElementById('regStartTime').value;
+    const endTime = document.getElementById('regEndTime').value;
+    const organizer = document.getElementById('regOrganizer').value.trim();
+    const organizerPhone = document.getElementById('regOrganizerPhone').value.trim();
+    const organizerEmail = document.getElementById('regOrganizerEmail').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const ticketTiersStr = document.getElementById('regTicketTiers').value.trim();
+    const logoFile = document.getElementById('regLogo').files[0];
+    const coverFile = document.getElementById('regCover').files[0];
+
+    let logo = '', cover = '';
+    if (logoFile) {
+        const reader = new FileReader();
+        logo = await new Promise(resolve => { reader.onload = e => resolve(e.target.result); reader.readAsDataURL(logoFile); });
+    }
+    if (coverFile) {
+        const reader = new FileReader();
+        cover = await new Promise(resolve => { reader.onload = e => resolve(e.target.result); reader.readAsDataURL(coverFile); });
+    }
+
+    const ticketTiers = ticketTiersStr.split(',').map(t => {
+        const parts = t.split(':').map(s => s.trim());
+        return { name: parts[0], price: parseInt(parts[1]), quantity: parseInt(parts[2]) };
+    });
+
+    if (!name || !description || !category || !venue || !city || !address || !startDate || !endDate || !startTime || !endTime || !organizer || !organizerPhone || !organizerEmail || !password || ticketTiers.length === 0) {
+        showToast('❌ الرجاء ملء جميع الحقول');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, description, category, venue, city, address, startDate, endDate, startTime, endTime, organizer, organizerPhone, organizerEmail, password, logo, coverImage: cover, ticketTiers })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('eventId', data.eventId);
+            showToast(`✅ تم إنشاء "${data.name}" بنجاح!`);
+            closeModal('registerModal');
+            updateUI();
+            navigateTo('dashboard');
+            loadDashboard();
+        } else showToast(`❌ ${data.message}`);
+    } catch { showToast('❌ فشل الاتصال'); }
+});
+
+// دخول المنظم
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
+    try {
+        const res = await fetch(`${API_BASE}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ organizerEmail: email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('eventId', data.eventId);
+            showToast(`✅ مرحباً ${data.name}`);
+            closeModal('loginModal');
+            updateUI();
+            navigateTo('dashboard');
+            loadDashboard();
+            if (socket) socket.emit('join-event', data.eventId);
+        } else showToast(`❌ ${data.message}`);
+    } catch { showToast('❌ فشل الاتصال'); }
+});
+
+function logout() {
+    localStorage.removeItem('token'); localStorage.removeItem('eventId');
+    showToast('👋 تم تسجيل الخروج');
+    updateUI(); navigateTo('home'); loadEvents(); refreshNotifications();
+}
+
+// العميل
+document.getElementById('customerRegisterForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('custName').value.trim();
+    const email = document.getElementById('custEmail').value.trim();
+    const phone = document.getElementById('custPhone').value.trim();
+    const password = document.getElementById('custPassword').value;
+    try {
+        const res = await fetch(`${API_BASE}/customer/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, phone, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            localStorage.setItem('customerToken', data.token);
+            localStorage.setItem('customerId', data.customerId);
+            localStorage.setItem('customerName', data.name);
+            showToast('✅ تم تسجيل حسابك');
+            closeModal('customerRegisterModal');
+            updateCustomerUI(); refreshNotifications();
+            if (socket) socket.emit('join-customer', data.customerId);
+        } else showToast(`❌ ${data.message}`);
+    } catch { showToast('❌ فشل الاتصال'); }
+});
+
+document.getElementById('customerLoginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('custLoginEmail').value.trim();
+    const password = document.getElementById('custLoginPassword').value.trim();
+    try {
+        const res = await fetch(`${API_BASE}/customer/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            localStorage.setItem('customerToken', data.token);
+            localStorage.setItem('customerId', data.customerId);
+            localStorage.setItem('customerName', data.name);
+            showToast(`✅ مرحباً ${data.name}`);
+            closeModal('customerLoginModal');
+            updateCustomerUI(); refreshNotifications();
+            if (socket) socket.emit('join-customer', data.customerId);
+        } else showToast(`❌ ${data.message}`);
+    } catch { showToast('❌ فشل الاتصال'); }
+});
+
+function customerLogout() {
+    localStorage.removeItem('customerToken'); localStorage.removeItem('customerId'); localStorage.removeItem('customerName');
+    showToast('👋 تم تسجيل الخروج');
+    updateCustomerUI(); refreshNotifications();
+}
+
+function updateCustomerUI() {
+    const token = localStorage.getItem('customerToken');
+    const isLoggedIn = !!token;
+    document.getElementById('customerLoginBtn').style.display = isLoggedIn ? 'none' : 'inline-block';
+    document.getElementById('customerRegisterBtn').style.display = isLoggedIn ? 'none' : 'inline-block';
+    document.getElementById('customerLogoutBtn').style.display = isLoggedIn ? 'inline-block' : 'none';
+    document.getElementById('customerNameDisplay').style.display = isLoggedIn ? 'inline' : 'none';
+    document.getElementById('customerDashboardBtn').style.display = isLoggedIn ? 'inline-block' : 'none';
+    document.getElementById('customerDashLink').style.display = isLoggedIn ? 'inline-block' : 'none';
+    if (isLoggedIn) document.getElementById('customerNameDisplay').textContent = `👋 ${localStorage.getItem('customerName') || 'عميل'}`;
+}
+
+// المدير
+document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('adminLoginEmail').value.trim();
+    const password = document.getElementById('adminLoginPassword').value.trim();
+    try {
+        const res = await fetch(`${API_BASE}/admin/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+            localStorage.setItem('adminToken', data.token);
+            localStorage.setItem('adminId', data.adminId);
+            showToast('✅ مرحباً مدير النظام');
+            closeModal('adminLoginModal');
+            updateUI(); navigateTo('admin'); loadAdminDashboard(); refreshNotifications();
+        } else showToast(`❌ ${data.message}`);
+    } catch { showToast('❌ فشل الاتصال'); }
+});
+function adminLogout() { localStorage.removeItem('adminToken'); localStorage.removeItem('adminId'); showToast('👋 تم تسجيل الخروج'); updateUI(); navigateTo('home'); }
+
+// ============================================================
+// جلب وعرض الفعاليات
+// ============================================================
+async function loadEvents() {
+    try {
+        const res = await fetch(`${API_BASE}/events`);
+        allEvents = await res.json();
+        renderHomeEvents(allEvents);
+        renderAllEvents(allEvents);
+        document.getElementById('totalEvents').textContent = allEvents.length;
+        updateResultCount(allEvents.length);
+        // حساب إجمالي التذاكر
+        const total = allEvents.reduce((sum, e) => sum + (e.soldTickets || 0), 0);
+        document.getElementById('totalTickets').textContent = total;
+    } catch { showToast('❌ فشل في تحميل الفعاليات'); }
+}
+
+function renderHomeEvents(events) {
+    const grid = document.getElementById('homeEventsGrid');
+    const top = events.slice(0, 6);
+    grid.innerHTML = top.map(e => createEventCard(e)).join('');
+}
+
+function renderAllEvents(events) {
+    const grid = document.getElementById('allEventsGrid');
+    if (!events || events.length === 0) {
+        grid.innerHTML = `<div style="text-align:center;color:var(--text-color);opacity:0.4;padding:1.5rem;">😕 لا توجد فعاليات مطابقة</div>`;
+        return;
+    }
+    grid.innerHTML = events.map(e => createEventCard(e)).join('');
+    updateResultCount(events.length);
+}
+
+function createEventCard(event) {
+    const minPrice = event.ticketTiers?.length ? Math.min(...event.ticketTiers.map(t => t.price)) : 0;
+    const remaining = event.ticketTiers?.reduce((sum, t) => sum + t.remaining, 0) || 0;
+    const coverStyle = event.coverImage ? `background-image: url(${event.coverImage});` : '';
+    const iconHtml = event.coverImage ? '' : `<i class="fas fa-calendar-alt default-icon"></i>`;
+    const categoryMap = {
+        concert: '🎵 حفلة',
+        conference: '🎤 مؤتمر',
+        workshop: '🔧 ورشة',
+        festival: '🎉 مهرجان',
+        sports: '⚽ رياضي',
+        art: '🎨 فني',
+        theatre: '🎭 مسرح',
+        comedy: '😂 كوميدي',
+        other: '📌 أخرى'
+    };
+    return `
+        <div class="event-card" onclick="showEventDetails('${event._id}')">
+            <div class="cover" style="${coverStyle}">
+                ${event.coverImage ? `<img src="${event.coverImage}" class="cover-image" alt="${event.name}">` : ''}
+                <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:center;flex-direction:column;width:100%;height:100%;">
+                    ${iconHtml}
+                </div>
+                <div class="overlay">
+                    <span class="category-badge">${categoryMap[event.category] || event.category}</span>
+                    <span class="date-badge">📅 ${event.startDate}</span>
+                </div>
+                ${event.featured ? '<span class="featured-badge">⭐ مميز</span>' : ''}
+            </div>
+            <div class="body">
+                <h3>${event.name}</h3>
+                <div class="venue"><i class="fas fa-map-marker-alt"></i> ${event.venue}, ${event.city}</div>
+                <div class="ticket-info">🎟️ يبدأ من ${minPrice} دج</div>
+                <div class="tickets-left">${remaining} تذكرة متبقية</div>
+                <div class="tags">${(event.tags || []).map(t => `<span>#${t}</span>`).join('')}</div>
+                <button class="btn-book" onclick="event.stopPropagation();openTicketModal('${event._id}')"><i class="fas fa-ticket-alt"></i> اشترِ تذكرة</button>
+            </div>
+        </div>
+    `;
+}
+
+function updateResultCount(count) {
+    const el = document.getElementById('eventsResultCount');
+    if (el) el.textContent = `🔄 عدد النتائج: ${count}`;
+}
+
+// ============================================================
+// البحث والفلترة
+// ============================================================
+function applyFilters() {
+    const query = document.getElementById('searchEvent').value.toLowerCase().trim();
+    const city = document.getElementById('filterCity').value;
+    const category = document.getElementById('filterCategory').value;
+    const status = document.getElementById('filterStatus').value;
+    let result = allEvents.filter(e => {
+        const matchName = e.name.toLowerCase().includes(query) || e.description?.toLowerCase().includes(query);
+        const matchCity = city ? e.city === city : true;
+        const matchCategory = category ? e.category === category : true;
+        const matchStatus = status ? e.status === status : true;
+        return matchName && matchCity && matchCategory && matchStatus;
+    });
+    renderAllEvents(result);
+}
+document.getElementById('searchEvent').addEventListener('input', applyFilters);
+document.getElementById('filterCity').addEventListener('change', applyFilters);
+document.getElementById('filterCategory').addEventListener('change', applyFilters);
+document.getElementById('filterStatus').addEventListener('change', applyFilters);
+
+// ============================================================
+// تفاصيل الفعالية
+// ============================================================
+async function showEventDetails(id) {
+    try {
+        const res = await fetch(`${API_BASE}/events/${id}`);
+        const event = await res.json();
+        const reviewsRes = await fetch(`${API_BASE}/reviews/event/${id}`);
+        const reviews = await reviewsRes.json();
+        const content = document.getElementById('eventDetailsContent');
+        const categoryMap = {
+            concert: '🎵 حفلة موسيقية',
+            conference: '🎤 مؤتمر',
+            workshop: '🔧 ورشة عمل',
+            festival: '🎉 مهرجان',
+            sports: '⚽ رياضي',
+            art: '🎨 فني',
+            theatre: '🎭 مسرح',
+            comedy: '😂 كوميدي',
+            other: '📌 أخرى'
+        };
+        const ticketsHtml = (event.ticketTiers || []).map(t => `
+            <div style="display:flex;justify-content:space-between;padding:0.2rem 0;border-bottom:1px solid var(--border-color);">
+                <span>${t.name}</span>
+                <span style="color:var(--gold);font-weight:700;">${t.price} دج</span>
+                <span style="color:var(--text-color);opacity:0.5;font-size:0.7rem;">(متبقي ${t.remaining})</span>
+            </div>
+        `).join('');
+        const reviewsHtml = reviews.map(r => `
+            <div class="review-item">
+                <div class="review-header"><span>${r.customerName}</span><span class="stars">${'★'.repeat(r.rating)}</span></div>
+                <div class="review-comment">${r.comment}</div>
+                <div class="review-date">${r.date}</div>
+            </div>
+        `).join('') || '<p style="color:var(--text-color);opacity:0.4;">لا توجد تقييمات بعد</p>';
+        const mapLink = event.lat && event.lng ? `https://www.google.com/maps/search/?api=1&query=${event.lat},${event.lng}` : '#';
+        content.innerHTML = `
+            <div style="text-align:center;margin-bottom:0.8rem;">
+                ${event.logo ? `<img src="${event.logo}" style="width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);margin-bottom:0.3rem;">` : ''}
+                <h2 style="color:var(--gold);font-size:1.2rem;">${event.name} ${event.featured ? '⭐' : ''}</h2>
+                <div style="color:var(--text-color);opacity:0.8;font-size:0.85rem;">${event.description || ''}</div>
+                <div style="color:var(--text-color);opacity:0.5;font-size:0.8rem;">${categoryMap[event.category]}</div>
+                <div style="color:var(--text-color);opacity:0.5;font-size:0.8rem;">📍 ${event.venue}, ${event.city}</div>
+                <div style="color:var(--text-color);opacity:0.5;font-size:0.8rem;">📅 ${event.startDate} - ${event.endDate}</div>
+                <div style="color:var(--text-color);opacity:0.5;font-size:0.8rem;">⏰ ${event.startTime} - ${event.endTime}</div>
+                <div style="color:var(--text-color);opacity:0.5;font-size:0.8rem;">👤 ${event.organizer}</div>
+                <div style="display:flex;justify-content:center;align-items:center;gap:8px;margin-top:0.15rem;font-size:0.85rem;color:var(--gold);"><i class="fas fa-phone"></i> ${event.organizerPhone}</div>
+                <div style="margin-top:0.15rem;"><span class="stars">${'★'.repeat(Math.floor(event.rating || 0))}${(event.rating || 0) % 1 >= 0.5 ? '★' : ''}</span><span style="color:var(--text-color);opacity:0.4;font-size:0.7rem;">(${event.totalReviews || 0} تقييم)</span></div>
+                <div style="margin-top:0.15rem;color:var(--text-color);opacity:0.5;font-size:0.8rem;">🎟️ ${event.soldTickets || 0} تذكرة مباعة</div>
+                ${event.lat && event.lng ? `<button class="btn-primary btn-sm" onclick="window.open('${mapLink}','_blank')" style="margin-top:0.3rem;"><i class="fas fa-map-marked-alt"></i> عرض على الخريطة</button>` : ''}
+            </div>
+            <div style="margin:0.6rem 0;">
+                <h4 style="color:var(--gold);font-size:0.9rem;">🎟️ فئات التذاكر</h4>
+                ${ticketsHtml || '<p style="color:var(--text-color);opacity:0.4;">لا توجد فئات</p>'}
+            </div>
+            <div style="margin:0.6rem 0;">
+                <h4 style="color:var(--gold);font-size:0.9rem;">⭐ التقييمات</h4>
+                ${reviewsHtml}
+            </div>
+            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-top:0.6rem;">
+                <button class="btn-gold btn-sm" onclick="closeModal('eventDetailsModal');openTicketModal('${event._id}')"><i class="fas fa-ticket-alt"></i> اشترِ تذكرة</button>
+                <button class="btn-primary btn-sm" onclick="closeModal('eventDetailsModal');openReview('${event._id}')"><i class="fas fa-star"></i> قيم الفعالية</button>
+                <button class="btn-whatsapp btn-sm" onclick="window.open('https://wa.me/213${event.organizerPhone.replace(/[^0-9]/g,'')}','_blank')"><i class="fab fa-whatsapp"></i> واتساب</button>
+            </div>
+        `;
+        openModal('eventDetailsModal');
+    } catch { showToast('❌ فشل في تحميل التفاصيل'); }
+}
+
+// ============================================================
+// شراء تذكرة
+// ============================================================
+let ticketEventId = null;
+
+function openTicketModal(eventId) {
+    ticketEventId = eventId;
+    fetch(`${API_BASE}/events/${eventId}`)
+        .then(res => res.json())
+        .then(event => {
+            document.getElementById('ticketEventName').value = event.name;
+            const select = document.getElementById('ticketTier');
+            select.innerHTML = '<option value="">اختر الفئة</option>';
+            (event.ticketTiers || []).forEach(t => {
+                if (t.remaining > 0) {
+                    select.innerHTML += `<option value="${t.name}" data-price="${t.price}" data-remaining="${t.remaining}">${t.name} - ${t.price} دج (متبقي ${t.remaining})</option>`;
+                }
+            });
+            document.getElementById('ticketTotalPrice').value = '';
+            // تعبئة بيانات العميل إذا كان مسجلاً
+            const customerToken = localStorage.getItem('customerToken');
+            if (customerToken) {
+                fetch(`${API_BASE}/customer/auth/profile`, {
+                    headers: { 'Authorization': `Bearer ${customerToken}` }
+                }).then(r => r.json()).then(profile => {
+                    if (profile) {
+                        document.getElementById('ticketCustomerName').value = profile.name || '';
+                        document.getElementById('ticketCustomerPhone').value = profile.phone || '';
+                        document.getElementById('ticketCustomerEmail').value = profile.email || '';
+                    }
+                }).catch(() => {});
+            }
+            openModal('ticketModal');
+        }).catch(() => showToast('❌ فشل في تحميل الفعالية'));
+}
+
+function updateTicketPrice() {
+    const select = document.getElementById('ticketTier');
+    const selected = select.options[select.selectedIndex];
+    const price = selected ? parseFloat(selected.dataset.price) || 0 : 0;
+    const quantity = parseInt(document.getElementById('ticketQuantity').value) || 1;
+    document.getElementById('ticketTotalPrice').value = price * quantity ? `${price * quantity} دج` : '';
+}
+
+document.getElementById('ticketForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const eventId = ticketEventId;
+    const ticketTier = document.getElementById('ticketTier').value;
+    const quantity = parseInt(document.getElementById('ticketQuantity').value) || 1;
+    const customerName = document.getElementById('ticketCustomerName').value.trim();
+    const customerPhone = document.getElementById('ticketCustomerPhone').value.trim();
+    const customerEmail = document.getElementById('ticketCustomerEmail').value.trim();
+    const paymentMethod = document.getElementById('ticketPayment').value;
+    const customerId = localStorage.getItem('customerId') || null;
+
+    if (!ticketTier || !customerName || !customerPhone || !customerEmail) {
+        showToast('❌ الرجاء ملء جميع الحقول');
+        return;
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/tickets/purchase`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId, ticketTier, quantity, customerName, customerPhone, customerEmail, customerId, paymentMethod })
+        });
+        const data = await res.json();
+        if (res.status === 409) showToast(`❌ ${data.message}`);
+        else if (res.ok) {
+            showToast('✅ تم شراء التذكرة بنجاح!');
+            closeModal('ticketModal');
+            document.getElementById('ticketForm').reset();
+            document.getElementById('ticketTotalPrice').value = '';
+            loadEvents();
+            refreshNotifications();
+        } else showToast(`❌ ${data.message}`);
+    } catch { showToast('❌ فشل الاتصال'); }
+});
+
+// ============================================================
+// تذاكري (عرض التذاكر)
+// ============================================================
+async function showMyTickets() {
+    const phone = prompt('أدخل رقم هاتفك للاطلاع على تذاكرك:');
+    if (!phone) return;
+    try {
+        const res = await fetch(`${API_BASE}/tickets/customer/${phone}`);
+        const tickets = await res.json();
+        const listDiv = document.getElementById('myTicketsList');
+        if (tickets.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center;color:var(--text-color);opacity:0.4;padding:1rem;">لا توجد تذاكر لهذا الرقم</p>';
+        } else {
+            listDiv.innerHTML = tickets.map(t => `
+                <div style="background:rgba(255,255,255,0.02);padding:0.5rem;border-radius:10px;margin-bottom:0.3rem;border-right:3px solid ${t.status === 'confirmed' ? 'var(--success)' : t.status === 'pending' ? 'var(--warning)' : 'var(--danger)'};">
+                    <div style="display:flex;justify-content:space-between;flex-wrap:wrap;">
+                        <strong style="color:var(--gold);font-size:0.85rem;">${t.eventId?.name || 'فعالية'}</strong>
+                        <span class="status ${t.status}">${t.status === 'confirmed' ? 'مؤكدة' : t.status === 'pending' ? 'قيد الانتظار' : t.status === 'used' ? 'مستخدمة' : 'ملغية'}</span>
+                    </div>
+                    <div style="color:var(--text-color);opacity:0.6;font-size:0.75rem;margin-top:0.1rem;">
+                        <i class="fas fa-ticket-alt"></i> ${t.ticketTier} | ${t.quantity} تذكرة | ${t.totalPrice} دج
+                    </div>
+                    <div style="color:var(--text-color);opacity:0.5;font-size:0.7rem;">📍 ${t.eventId?.venue || ''}</div>
+                    <div style="color:var(--text-color);opacity:0.5;font-size:0.7rem;">📅 ${t.eventId?.startDate || ''}</div>
+                    ${t.status === 'confirmed' ? `<button class="btn-danger btn-sm" style="margin-top:0.15rem;" onclick="cancelTicket('${t._id}')"><i class="fas fa-times"></i> إلغاء</button>` : ''}
+                </div>
+            `).join('');
+        }
+        openModal('myTicketsModal');
+    } catch { showToast('❌ فشل في جلب التذاكر'); }
+}
+
+async function cancelTicket(id) {
+    if (!confirm('هل تريد إلغاء هذه التذكرة؟')) return;
+    const token = localStorage.getItem('customerToken');
+    if (!token) { showToast('❌ يرجى تسجيل الدخول'); return; }
+    try {
+        const res = await fetch(`${API_BASE}/tickets/${id}/cancel`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            showToast('✅ تم الإلغاء');
+            showMyTickets();
+            loadEvents();
+            refreshNotifications();
+        } else {
+            const data = await res.json();
+            showToast(`❌ ${data.message}`);
+        }
+    } catch { showToast('❌ فشل الاتصال'); }
+}
+
+// ============================================================
+// التقييم
+// ============================================================
+function openReview(eventId) {
+    document.getElementById('reviewEventId').value = eventId;
+    openModal('reviewModal');
+}
+
+document.getElementById('reviewForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const eventId = document.getElementById('reviewEventId').value;
+    const rating = parseInt(document.getElementById('reviewRating').value);
+    const comment = document.getElementById('reviewComment').value.trim();
+    const token = localStorage.getItem('customerToken');
+    if (!token) { showToast('❌ يرجى تسجيل الدخول'); return; }
+    try {
+        const res = await fetch(`${API_BASE}/reviews`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ eventId, rating, comment })
+        });
+        const data = await res.json();
+        if (res.ok) { showToast('✅ شكراً لتقييمك!'); closeModal('reviewModal'); loadEvents(); refreshNotifications(); }
+        else showToast(`❌ ${data.message}`);
+    } catch { showToast('❌ فشل الاتصال'); }
+});
+
+// ============================================================
+// الإشعارات
+// ============================================================
+async function fetchNotifications() {
+    const token = localStorage.getItem('token');
+    const customerToken = localStorage.getItem('customerToken');
+    const adminToken = localStorage.getItem('adminToken');
+    let url = '', headers = {};
+    if (token) { url = `${API_BASE}/notifications/event`; headers = { 'Authorization': `Bearer ${token}` }; }
+    else if (customerToken) { url = `${API_BASE}/notifications/customer`; headers = { 'Authorization': `Bearer ${customerToken}` }; }
+    else if (adminToken) { url = `${API_BASE}/notifications/admin`; headers = { 'Authorization': `Bearer ${adminToken}` }; }
+    else return [];
+    try { const res = await fetch(url, { headers }); if (res.ok) return await res.json(); return []; } catch { return []; }
+}
+async function updateNotificationUI() {
+    const notifications = await fetchNotifications();
+    const unread = notifications.filter(n => !n.read).length;
+    document.getElementById('notifBadge').textContent = unread;
+    document.getElementById('notifBadge').style.display = unread > 0 ? 'inline' : 'none';
+    const list = document.getElementById('notifList');
+    if (notifications.length === 0) list.innerHTML = '<div class="notif-empty">📭 لا توجد إشعارات</div>';
+    else list.innerHTML = notifications.slice(0,10).map(n => `<div class="notif-item ${n.read ? '' : 'unread'}"><div class="notif-title">${n.title}</div><div class="notif-msg">${n.message}</div><div class="notif-time">${new Date(n.createdAt).toLocaleString('ar-DZ')}</div></div>`).join('');
+}
+async function toggleNotifications() {
+    document.getElementById('notifDropdown').classList.toggle('active');
+    const token = localStorage.getItem('token');
+    const customerToken = localStorage.getItem('customerToken');
+    const adminToken = localStorage.getItem('adminToken');
+    const userId = localStorage.getItem('eventId') || localStorage.getItem('customerId') || localStorage.getItem('adminId');
+    const userType = token ? 'event' : customerToken ? 'customer' : adminToken ? 'admin' : null;
+    if (userId && userType) {
+        try { await fetch(`${API_BASE}/notifications/read-all`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ userId, userType }) }); setTimeout(updateNotificationUI, 500); } catch {}
+    }
+}
+document.addEventListener('click', function(e) {
+    const bell = document.getElementById('notifBell'); const dropdown = document.getElementById('notifDropdown');
+    if (bell && dropdown && !bell.contains(e.target) && !dropdown.contains(e.target)) dropdown.classList.remove('active');
+});
+function refreshNotifications() { updateNotificationUI(); }
+
+// ============================================================
+// الفعاليات القريبة (GPS)
+// ============================================================
+function getNearbyEvents() {
+    if (!navigator.geolocation) { showToast('❌ متصفحك لا يدعم GPS'); return; }
+    showToast('⏳ جاري تحديد موقعك...');
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            const userLat = pos.coords.latitude, userLng = pos.coords.longitude;
+            const R = 6371;
+            const withDist = allEvents.filter(e => e.lat && e.lng).map(e => {
+                const dLat = (e.lat - userLat) * Math.PI/180;
+                const dLng = (e.lng - userLng) * Math.PI/180;
+                const a = Math.sin(dLat/2)**2 + Math.cos(userLat * Math.PI/180) * Math.cos(e.lat * Math.PI/180) * Math.sin(dLng/2)**2;
+                const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return { ...e, distance: dist };
+            }).filter(e => e.distance <= 50).sort((a,b) => a.distance - b.distance);
+            if (withDist.length === 0) { showToast('❌ لا توجد فعاليات قريبة'); renderAllEvents(allEvents); }
+            else { renderAllEvents(withDist); showToast(`✅ ${withDist.length} فعالية قريبة`); }
+        },
+        () => { showToast('❌ فشل تحديد الموقع'); }
+    );
+}
+
+// ============================================================
+// لوحة تحكم المنظم
+// ============================================================
+async function loadDashboard() {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    try {
+        const eventRes = await fetch(`${API_BASE}/events/${localStorage.getItem('eventId')}`);
+        const event = await eventRes.json();
+        const ticketsRes = await fetch(`${API_BASE}/tickets`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const tickets = await ticketsRes.json();
+        const reviewsRes = await fetch(`${API_BASE}/reviews/event/${event._id}`);
+        const reviews = await reviewsRes.json();
+
+        document.getElementById('dashEventName').textContent = event.name + (event.featured ? ' ⭐' : '');
+        document.getElementById('dashEventCity').textContent = event.city;
+        document.getElementById('dashRating').textContent = `⭐ ${event.rating || 'جديد'} (${event.totalReviews || 0} تقييم)`;
+
+        const totalTickets = event.ticketTiers?.reduce((s, t) => s + t.quantity, 0) || 0;
+        const soldTickets = event.soldTickets || 0;
+        const remaining = totalTickets - soldTickets;
+        const revenue = tickets.filter(t => t.status === 'confirmed').reduce((s, t) => s + (t.totalPrice || 0), 0);
+
+        document.getElementById('statTotalTickets').textContent = totalTickets;
+        document.getElementById('statSoldTickets').textContent = soldTickets;
+        document.getElementById('statRevenue').textContent = revenue.toLocaleString();
+        document.getElementById('statRemaining').textContent = remaining;
+
+        const recent = tickets.slice(-5).reverse();
+        document.getElementById('dashTicketsTable').innerHTML = recent.map(t => `
+            <tr><td>${t.customerName}</td><td>${t.ticketTier}</td><td>${t.price} دج</td><td>${t.quantity}</td><td><span class="status ${t.status}">${t.status === 'confirmed' ? 'مؤكدة' : t.status === 'pending' ? 'قيد الانتظار' : t.status === 'used' ? 'مستخدمة' : 'ملغية'}</span></td></tr>
+        `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--text-color);opacity:0.4;">لا توجد تذاكر</td></tr>';
+
+        document.getElementById('dashAllTickets').innerHTML = tickets.map(t => `
+            <tr>
+                <td>${t.customerName}</td><td>${t.ticketTier}</td><td>${t.price} دج</td><td>${t.quantity}</td>
+                <td><span class="status ${t.status}">${t.status === 'confirmed' ? 'مؤكدة' : t.status === 'pending' ? 'قيد الانتظار' : t.status === 'used' ? 'مستخدمة' : 'ملغية'}</span></td>
+                <td>
+                    ${t.status === 'confirmed' ? `<button class="btn-success btn-sm" onclick="useTicket('${t._id}')"><i class="fas fa-check"></i> استخدام</button>` : ''}
+                    ${t.status === 'pending' || t.status === 'confirmed' ? `<button class="btn-danger btn-sm" onclick="cancelTicketByOrganizer('${t._id}')"><i class="fas fa-times"></i></button>` : ''}
+                </td>
+            </tr>
+        `).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text-color);opacity:0.4;">لا توجد تذاكر</td></tr>';
+
+        document.getElementById('tiersList').innerHTML = (event.ticketTiers || []).map((t, i) => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:0.25rem 0.5rem;border-bottom:1px solid var(--border-color);">
+                <span style="font-size:0.8rem;"><i class="fas fa-layer-group" style="color:var(--gold);"></i> ${t.name}</span>
+                <span style="color:var(--gold);font-weight:700;font-size:0.8rem;">${t.price} دج</span>
+                <span style="color:var(--text-color);opacity:0.5;font-size:0.7rem;">${t.remaining}/${t.quantity}</span>
+                <button class="btn-danger btn-sm" onclick="removeTier(${i})"><i class="fas fa-trash"></i></button>
+            </div>
+        `).join('') || '<p style="color:var(--text-color);opacity:0.4;text-align:center;padding:0.5rem;">لا توجد فئات</p>';
+
+        document.getElementById('reviewsList').innerHTML = reviews.map(r => `
+            <div class="review-item">
+                <div class="review-header"><span>${r.customerName}</span><span class="stars">${'★'.repeat(r.rating)}</span></div>
+                <div class="review-comment">${r.comment}</div>
+                <div class="review-date">${r.date}</div>
+            </div>
+        `).join('') || '<p style="color:var(--text-color);opacity:0.4;text-align:center;padding:0.5rem;">لا توجد تقييمات بعد</p>';
+
+        document.getElementById('setEventName').value = event.name || '';
+        document.getElementById('setEventCity').value = event.city || '';
+        document.getElementById('setEventVenue').value = event.venue || '';
+        document.getElementById('setEventDesc').value = event.description || '';
+
+        refreshNotifications();
+    } catch { showToast('❌ فشل في تحميل لوحة التحكم'); }
+}
+
+// ============================================================
+// إدارة فئات التذاكر (للمنظم)
+// ============================================================
+function addTier() {
+    const name = prompt('اسم الفئة:');
+    if (!name) return;
+    const price = prompt('السعر:');
+    if (!price || isNaN(price)) { showToast('❌ سعر غير صحيح'); return; }
+    const quantity = prompt('العدد الإجمالي:');
+    if (!quantity || isNaN(quantity)) { showToast('❌ عدد غير صحيح'); return; }
+    const token = localStorage.getItem('token');
+    const eventId = localStorage.getItem('eventId');
+    if (!token) { showToast('❌ يجب تسجيل الدخول'); return; }
+    fetch(`${API_BASE}/events/${eventId}`)
+        .then(r => r.json())
+        .then(event => {
+            const tiers = event.ticketTiers || [];
+            tiers.push({ name, price: parseInt(price), quantity: parseInt(quantity), remaining: parseInt(quantity) });
+            return fetch(`${API_BASE}/events/${eventId}/tickets`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ ticketTiers: tiers })
+            });
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message) { showToast('✅ تم الإضافة'); loadDashboard(); }
+            else showToast(`❌ ${data.message}`);
+        }).catch(() => showToast('❌ فشل الاتصال'));
+}
+
+function removeTier(index) {
+    if (!confirm('حذف هذه الفئة؟')) return;
+    const token = localStorage.getItem('token');
+    const eventId = localStorage.getItem('eventId');
+    if (!token) { showToast('❌ يجب تسجيل الدخول'); return; }
+    fetch(`${API_BASE}/events/${eventId}`)
+        .then(r => r.json())
+        .then(event => {
+            const tiers = event.ticketTiers || [];
+            tiers.splice(index, 1);
+            return fetch(`${API_BASE}/events/${eventId}/tickets`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ ticketTiers: tiers })
+            });
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.message) { showToast('✅ تم الحذف'); loadDashboard(); }
+            else showToast(`❌ ${data.message}`);
+        }).catch(() => showToast('❌ فشل الاتصال'));
+}
+
+// ============================================================
+// إدارة التذاكر (للمنظم)
+// ============================================================
+async function useTicket(id) {
+    if (!confirm('تأكيد استخدام هذه التذكرة (دخول الفعالية)؟')) return;
+    const token = localStorage.getItem('token');
+    try {
+        const res = await fetch(`${API_BASE}/tickets/${id}/use`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) { showToast('✅ تم استخدام التذكرة'); loadDashboard(); refreshNotifications(); }
+        else { const data = await res.json(); showToast(`❌ ${data.message}`); }
+    } catch { showToast('❌ فشل الاتصال'); }
+}
+
+async function cancelTicketByOrganizer(id) {
+    if (!confirm('إلغاء هذه التذكرة؟')) return;
+    const token = localStorage.getItem('token');
+    try {
+        const res = await fetch(`${API_BASE}/tickets/${id}/cancel`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) { showToast('✅ تم الإلغاء'); loadDashboard(); refreshNotifications(); }
+        else { const data = await res.json(); showToast(`❌ ${data.message}`); }
+    } catch { showToast('❌ فشل الاتصال'); }
+}
+
+// ============================================================
+// إعدادات الفعالية
+// ============================================================
+document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    const eventId = localStorage.getItem('eventId');
+    const name = document.getElementById('setEventName').value.trim();
+    const city = document.getElementById('setEventCity').value.trim();
+    const venue = document.getElementById('setEventVenue').value.trim();
+    const description = document.getElementById('setEventDesc').value.trim();
+    try {
+        const res = await fetch(`${API_BASE}/events/${eventId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ name, city, venue, description })
+        });
+        if (res.ok) { showToast('✅ تم الحفظ'); loadDashboard(); }
+        else { const data = await res.json(); showToast(`❌ ${data.message}`); }
+    } catch { showToast('❌ فشل الاتصال'); }
+});
+
+async function deleteEvent() {
+    if (!confirm('هل أنت متأكد من حذف هذه الفعالية وجميع بياناتها؟')) return;
+    const token = localStorage.getItem('token');
+    const eventId = localStorage.getItem('eventId');
+    try {
+        const res = await fetch(`${API_BASE}/events/${eventId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            showToast('✅ تم الحذف');
+            logout();
+            navigateTo('home');
+        } else {
+            const data = await res.json();
+            showToast(`❌ ${data.message}`);
+        }
+    } catch { showToast('❌ فشل'); }
+}
+
+// ============================================================
+// لوحة المدير
+// ============================================================
+async function loadAdminDashboard() {
+    const token = localStorage.getItem('adminToken');
+    if (!token) return;
+    try {
+        const statsRes = await fetch(`${API_BASE}/admin/stats`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const stats = await statsRes.json();
+        const [eventsRes, customersRes, reviewsRes] = await Promise.all([
+            fetch(`${API_BASE}/admin/events`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${API_BASE}/admin/customers`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${API_BASE}/admin/reviews`, { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        const events = await eventsRes.json();
+        const customers = await customersRes.json();
+        const reviews = await reviewsRes.json();
+
+        document.getElementById('adminContent').innerHTML = `
+            <div class="stats-grid">
+                <div class="stat-card"><div class="number">${stats.totalEvents || 0}</div><div class="label">إجمالي الفعاليات</div></div>
+                <div class="stat-card"><div class="number">${stats.totalCustomers || 0}</div><div class="label">إجمالي العملاء</div></div>
+                <div class="stat-card"><div class="number">${stats.totalTickets || 0}</div><div class="label">إجمالي التذاكر</div></div>
+                <div class="stat-card"><div class="number">${stats.totalRevenue || 0}</div><div class="label">إجمالي الإيرادات (دج)</div></div>
+            </div>
+            <hr style="border-color:var(--border-color);margin:0.8rem 0;">
+            <h3 style="color:var(--gold);font-size:0.95rem;">📋 الفعاليات</h3>
+            ${events.map(e => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:0.2rem 0;border-bottom:1px solid var(--border-color);">
+                    <span style="font-size:0.8rem;">${e.name} (${e.city})</span>
+                    <button class="btn-danger btn-sm" onclick="adminDeleteEvent('${e._id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('')}
+            <hr style="border-color:var(--border-color);margin:0.8rem 0;">
+            <h3 style="color:var(--gold);font-size:0.95rem;">👤 العملاء</h3>
+            ${customers.map(c => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:0.2rem 0;border-bottom:1px solid var(--border-color);">
+                    <span style="font-size:0.8rem;">${c.name} (${c.email})</span>
+                    <button class="btn-danger btn-sm" onclick="adminDeleteCustomer('${c._id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('')}
+            <hr style="border-color:var(--border-color);margin:0.8rem 0;">
+            <h3 style="color:var(--gold);font-size:0.95rem;">⭐ التقييمات</h3>
+            ${reviews.map(r => `
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:0.2rem 0;border-bottom:1px solid var(--border-color);">
+                    <span style="font-size:0.8rem;">${r.customerName || 'عميل'} → ${r.eventId?.name || 'فعالية'} (${'★'.repeat(r.rating)})</span>
+                    <button class="btn-danger btn-sm" onclick="adminDeleteReview('${r._id}')"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('')}
+        `;
+    } catch { showToast('❌ فشل في تحميل لوحة المدير'); }
+}
+
+async function adminDeleteEvent(id) {
+    if (!confirm('حذف هذه الفعالية؟')) return;
+    const token = localStorage.getItem('adminToken');
+    try {
+        const res = await fetch(`${API_BASE}/admin/events/${id}`, { method:'DELETE', headers:{'Authorization':`Bearer ${token}`} });
+        if (res.ok) { showToast('✅ تم الحذف'); loadAdminDashboard(); }
+        else { const data = await res.json(); showToast(`❌ ${data.message}`); }
+    } catch { showToast('❌ فشل'); }
+}
+
+async function adminDeleteCustomer(id) {
+    if (!confirm('حذف هذا العميل؟')) return;
+    const token = localStorage.getItem('adminToken');
+    try {
+        const res = await fetch(`${API_BASE}/admin/customers/${id}`, { method:'DELETE', headers:{'Authorization':`Bearer ${token}`} });
+        if (res.ok) { showToast('✅ تم الحذف'); loadAdminDashboard(); }
+        else { const data = await res.json(); showToast(`❌ ${data.message}`); }
+    } catch { showToast('❌ فشل'); }
+}
+
+async function adminDeleteReview(id) {
+    if (!confirm('حذف هذا التقييم؟')) return;
+    const token = localStorage.getItem('adminToken');
+    try {
+        const res = await fetch(`${API_BASE}/admin/reviews/${id}`, { method:'DELETE', headers:{'Authorization':`Bearer ${token}`} });
+        if (res.ok) { showToast('✅ تم الحذف'); loadAdminDashboard(); }
+        else { const data = await res.json(); showToast(`❌ ${data.message}`); }
+    } catch { showToast('❌ فشل'); }
+}
+
+// ============================================================
+// حساب العميل (تذاكري)
+// ============================================================
+async function loadCustomerDashboard() {
+    const token = localStorage.getItem('customerToken');
+    if (!token) { showToast('❌ يرجى تسجيل الدخول'); return; }
+    try {
+        const profileRes = await fetch(`${API_BASE}/customer/auth/profile`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const profile = await profileRes.json();
+        const ticketsRes = await fetch(`${API_BASE}/tickets/my`, { headers: { 'Authorization': `Bearer ${token}` } });
+        const tickets = await ticketsRes.json();
+        document.getElementById('customerDashboardContent').innerHTML = `
+            <div style="max-width:600px;margin:0 auto;">
+                <h3 style="color:var(--gold);font-size:1.1rem;">👤 معلوماتي</h3>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    <div style="width:70px;height:70px;border-radius:50%;background:var(--input-bg);display:flex;align-items:center;justify-content:center;font-size:2.5rem;border:2px solid var(--gold);">👤</div>
+                    <div><strong style="font-size:1.1rem;">${profile.name}</strong><br><span style="color:var(--text-color);opacity:0.5;font-size:0.8rem;">${profile.email}</span></div>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <span style="background:var(--stat-bg);padding:0.2rem 0.8rem;border-radius:50px;font-size:0.8rem;color:var(--gold);">⭐ نقاط: ${profile.points || 0}</span>
+                </div>
+                <hr style="border-color:var(--border-color);margin:0.8rem 0;">
+                <h3 style="color:var(--gold);font-size:1.1rem;">🎟️ تذاكري</h3>
+                ${tickets.length ? tickets.map(t => `
+                    <div style="background:rgba(255,255,255,0.02);padding:0.4rem;border-radius:10px;margin-bottom:0.3rem;border-right:3px solid ${t.status === 'confirmed' ? 'var(--success)' : t.status === 'pending' ? 'var(--warning)' : 'var(--danger)'};">
+                        <div style="display:flex;justify-content:space-between;">
+                            <strong style="color:var(--gold);font-size:0.85rem;">${t.eventId?.name || 'فعالية'}</strong>
+                            <span class="status ${t.status}">${t.status === 'confirmed' ? 'مؤكدة' : t.status === 'pending' ? 'قيد الانتظار' : t.status === 'used' ? 'مستخدمة' : 'ملغية'}</span>
+                        </div>
+                        <div style="color:var(--text-color);opacity:0.6;font-size:0.75rem;">${t.ticketTier} | ${t.quantity} تذكرة | ${t.totalPrice} دج</div>
+                        <div style="color:var(--text-color);opacity:0.5;font-size:0.7rem;">📅 ${t.eventId?.startDate || ''} | 📍 ${t.eventId?.venue || ''}</div>
+                        ${t.status === 'confirmed' ? `<button class="btn-danger btn-sm" style="margin-top:0.15rem;" onclick="cancelTicket('${t._id}')"><i class="fas fa-times"></i> إلغاء</button>` : ''}
+                    </div>
+                `).join('') : '<p style="color:var(--text-color);opacity:0.4;">لا توجد تذاكر</p>'}
+                <hr style="border-color:var(--border-color);margin:0.8rem 0;">
+                <button class="btn-danger btn-sm" onclick="deleteCustomerAccount()"><i class="fas fa-user-slash"></i> حذف حسابي</button>
+            </div>
+        `;
+    } catch { showToast('❌ فشل في تحميل حسابي'); }
+}
+
+async function deleteCustomerAccount() {
+    if (!confirm('هل أنت متأكد من حذف حسابك؟')) return;
+    const token = localStorage.getItem('customerToken');
+    try {
+        const res = await fetch(`${API_BASE}/customer/auth/me`, { method:'DELETE', headers:{'Authorization':`Bearer ${token}`} });
+        if (res.ok) { showToast('✅ تم حذف حسابك'); customerLogout(); navigateTo('home'); }
+        else { const data = await res.json(); showToast(`❌ ${data.message}`); }
+    } catch { showToast('❌ فشل'); }
+}
+
+// ============================================================
+// تحديث واجهة المستخدم
+// ============================================================
+function updateUI() {
+    const token = localStorage.getItem('token');
+    const customerToken = localStorage.getItem('customerToken');
+    const adminToken = localStorage.getItem('adminToken');
+    const isEvent = !!token;
+    document.getElementById('loginBtn').style.display = isEvent ? 'none' : 'inline-block';
+    document.getElementById('registerBtn').style.display = isEvent ? 'none' : 'inline-block';
+    document.getElementById('logoutBtn').style.display = isEvent ? 'inline-block' : 'none';
+    document.getElementById('dashNavLink').style.display = isEvent ? 'inline-block' : 'none';
+    document.getElementById('userDisplay').style.display = isEvent ? 'inline-block' : 'none';
+    if (isEvent) document.getElementById('userDisplay').textContent = '👋 منظم';
+    updateCustomerUI();
+    const isAdmin = !!adminToken;
+    document.getElementById('adminNavLink').style.display = isAdmin ? 'inline-block' : 'none';
+    document.getElementById('adminLogoutBtn').style.display = isAdmin ? 'inline-block' : 'none';
+    document.getElementById('myTicketsBtn').style.display = 'inline-block';
+    refreshNotifications();
+}
+
+// ============================================================
+// التهيئة
+// ============================================================
+async function init() {
+    await loadEvents();
+    updateUI();
+    initSocket();
+    if (localStorage.getItem('token')) navigateTo('dashboard');
+    if (localStorage.getItem('adminToken')) { document.getElementById('adminNavLink').style.display = 'inline-block'; navigateTo('admin'); }
+    if (localStorage.getItem('customerToken')) { document.getElementById('customerDashLink').style.display = 'inline-block'; }
+    refreshNotifications();
+    setInterval(refreshNotifications, 30000);
+    console.log('🎟️ فعاليات DZ - منصة حجز تذاكر الفعاليات في الجزائر');
+    console.log('✅ خادم يعمل على:', API_BASE);
+}
+
+// مستمعات القائمة الجانبية
+document.querySelectorAll('.sidebar .menu a').forEach(link => {
+    link.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.sidebar .menu a').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+        const page = this.dataset.dash;
+        document.querySelectorAll('#dashContent > div').forEach(div => div.classList.add('hidden'));
+        const map = {
+            'overview': 'dashOverview',
+            'tickets': 'dashTickets',
+            'tiers': 'dashTiers',
+            'reviews': 'dashReviews',
+            'settings': 'dashSettings'
+        };
+        const target = document.getElementById(map[page]);
+        if (target) { target.classList.remove('hidden'); if (page === 'overview' || page === 'tickets' || page === 'reviews') loadDashboard(); }
+    });
+});
+
+init();
+</script>
+</body>
+</html>
